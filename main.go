@@ -245,7 +245,7 @@ func collectorOptions() []collector.Option {
 		opts = append(opts, collector.WithTimeout(*timeout))
 	}
 
-	if *tls || cfg.tls {
+	if *tls || cfg.Features.TLS {
 		fmt.Printf("TLS activated\n");
 		opts = append(opts, collector.WithTLS(*insecure))
 	}

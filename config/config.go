@@ -9,9 +9,9 @@ import (
 
 // Config represents the configuration for the exporter
 type Config struct {
-	tls		 bool `yaml:"tls,omitempty"`
 	Devices  []Device `yaml:"devices"`
 	Features struct {
+		TLS      bool `yaml:"tls,omitempty"`
 		BGP      bool `yaml:"bgp,omitempty"`
 		DHCP     bool `yaml:"dhcp,omitempty"`
 		DHCPL    bool `yaml:"dhcpl,omitempty"`

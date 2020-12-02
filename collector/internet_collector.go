@@ -59,12 +59,14 @@ func (c *internetCollector) collect(ctx *collectorContext) error {
 // This function parses the status and the last change time of a specific interface
 func (c *internetCollector) collectStatusForEth(name string, se *proto.Sentence, ctx *collectorContext) {
 	layout := "Jan/02/2006 15:04:05"
+	// Set specific Timezone
+	loc, _ := time.LoadLocation("Europe/Paris")
 	// Parse date
 	v, ok := se.Map["state-change-time"]
 	if !ok {
 		return
 	}
-	t, err := time.Parse(layout, v)
+	t, err := time.ParseInLocation(layout, v, loc)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"device": ctx.device.Name,

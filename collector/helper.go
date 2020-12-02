@@ -25,6 +25,11 @@ func descriptionForPropertyNameHelpText(prefix, property string, labelNames []st
 	)
 }
 
+// Create a description for a Prometheus metric
+// prefix: metric prefix
+// name: metric name
+// helpText: a string to describe the metric
+// labelNames:
 func description(prefix, name, helpText string, labelNames []string) *prometheus.Desc {
 	return prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, prefix, name),

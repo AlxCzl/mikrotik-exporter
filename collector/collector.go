@@ -175,6 +175,13 @@ func WithIpsec() Option {
 	}
 }
 
+// WithInternet enables internet access metrics
+func WithInternet() Option {
+	return func(c *collector) {
+		c.collectors = append(c.collectors, newInternetCollector())
+	}
+}
+
 // Option applies options to collector
 type Option func(*collector)
 

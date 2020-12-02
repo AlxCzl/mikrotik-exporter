@@ -51,8 +51,8 @@ var (
 	withWlanIF   = flag.Bool("with-wlanif", false, "retrieves wlan interface metrics")
 	withMonitor  = flag.Bool("with-monitor", false, "retrieves ethernet interface monitor info")
 	withIpsec    = flag.Bool("with-ipsec", false, "retrieves ipsec metrics")
-
-	cfg *config.Config
+	withInternet = flag.Bool("with-internet", false, "retrieves detect-internet interfaces")
+	cfg          *config.Config
 
 	appVersion = "DEVELOPMENT"
 	shortSha   = "0xDEADBEEF"
@@ -241,12 +241,16 @@ func collectorOptions() []collector.Option {
 		opts = append(opts, collector.WithIpsec())
 	}
 
+	if *withInternet || cfg.Features.Internet {
+		opts = append(opts, collector.WithInternet())
+	}
+
 	if *timeout != collector.DefaultTimeout {
 		opts = append(opts, collector.WithTimeout(*timeout))
 	}
 
 	if *tls || cfg.Features.TLS {
-		fmt.Printf("TLS activated\n");
+		fmt.Printf("TLS activated\n")
 		opts = append(opts, collector.WithTLS(*insecure))
 	}
 

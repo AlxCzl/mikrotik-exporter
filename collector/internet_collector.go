@@ -73,7 +73,7 @@ func (c *internetCollector) collectStatusForEth(name string, se *proto.Sentence,
 		return
 	}
 
-	value := time.Since(t).Seconds()
+	value := float64(t.Unix())
 	ctx.ch <- prometheus.MustNewConstMetric(c.descriptions["state-change-time"], prometheus.GaugeValue, value, ctx.device.Name, se.Map["name"], se.Map["state"])
 }
 

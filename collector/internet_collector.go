@@ -1,7 +1,10 @@
 package collector
 
 import (
+	"time"
 	"strings"
+
+	"gopkg.in/routeros.v2/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,9 +22,9 @@ func newInternetCollector() routerOSCollector {
 
 func (c *internetCollector) init() {
 	// Properties other than 'name' that will be used in .proplist
-	c.props = []string{"state"}
+	c.props = []string{"state", "state-change-time"}
 	// Description for the returned values in the metric
-	labelNames := []string{"devicename", "interface"}
+	labelNames := []string{"devicename", "interface", "state"}
 	c.descriptions = make(map[string]*prometheus.Desc)
 	for _, p := range c.props {
 		c.descriptions[p] = descriptionForPropertyName("internet", p, labelNames)
@@ -44,38 +47,34 @@ func (c *internetCollector) collect(ctx *collectorContext) error {
 		return err
 	}
 
-	for _, e := range reply.Re {
-		for _, prop := range c.props {
-			v, ok := e.Map[prop]
-			if !ok {
-				continue
-			}
 
-			value := float64(c.valueForProp(prop, v))
-			ctx.ch <- prometheus.MustNewConstMetric(c.descriptions[prop], prometheus.GaugeValue, value, ctx.device.Name, e.Map["name"])
-		}
+	for _, e := range reply.Re {
+		c.collectStatusForEth(e.Map["name"], e, ctx)
+
 	}
 
 	return nil
 }
 
-// Here are the corresponding values for detect-internet's output:
-// - internet: 2
-// - wan: 1
-// - lan: 0
-func (c *internetCollector) valueForProp(name, value string) int {
-	switch {
-	case name == "state":
-		return func(v string) int {
-			if v == "internet" {
-				return 2
-			}
-			if v == "wan" {
-				return 1
-			}
-			return 0
-		}(value)
-	default:
-		return 0
+// This function parses the status and the last change time of a specific interface
+func (c *internetCollector) collectStatusForEth(name string, se *proto.Sentence, ctx *collectorContext) {
+	layout := "Jan/02/2006 15:04:05"
+	// Parse date
+	v, ok := se.Map["state-change-time"]
+	if !ok {
+		return
 	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"device": ctx.device.Name,
+			"error":  err,
+		}).Error("error parsing detect-internet last state date")
+		return
+	}
+
+	value := time.Since(t).Seconds()
+	ctx.ch <- prometheus.MustNewConstMetric(c.descriptions["state-change-time"], prometheus.GaugeValue, value, ctx.device.Name, se.Map["name"], se.Map["state"])
 }
+
+
